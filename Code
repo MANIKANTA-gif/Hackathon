@@ -1,0 +1,127 @@
+// src/components/SearchBar.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const SearchBar = () => {
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState(null);
+
+  useEffect(() => {
+    if (query.length === 0) {
+      setSuggestions([]);
+      return;
+    }
+
+    const fetchSuggestions = async () => {
+      try {
+        const response = await axios.get(https://restcountries.com/v3.1/all);
+        const countries = response.data;
+        const filteredCountries = countries.filter(country => 
+          country.name.common.toLowerCase().includes(query.toLowerCase()) ||
+          (country.capital && country.capital[0].toLowerCase().includes(query.toLowerCase()))
+        );
+        setSuggestions(filteredCountries);
+      } catch (error) {
+        console.error('Error fetching country data:', error);
+      }
+    };
+
+    fetchSuggestions();
+  }, [query]);
+
+  const handleChange = (event) => {
+    setQuery(event.target.value);
+  };
+
+  const handleSelect = (country) => {
+    setQuery(country.name.common);
+    setSelectedCountry(country);
+    setSuggestions([]);
+  };
+
+  return (
+    <div style={styles.container}>
+      <input
+        type="text"
+        value={query}
+        onChange={handleChange}
+        placeholder="Search for a country or capital..."
+        style={styles.input}
+      />
+      {suggestions.length > 0 && (
+        <ul style={styles.suggestionList}>
+          {suggestions.map((country) => (
+            <li
+              key={country.cca3}
+              onClick={() => handleSelect(country)}
+              style={styles.suggestionItem}
+            >
+              {country.name.common} - {country.capital ? country.capital[0] : 'No Capital'}
+            </li>
+          ))}
+        </ul>
+      )}
+      {selectedCountry && (
+        <div style={styles.selectedCountry}>
+          <h2>{selectedCountry.name.common}</h2>
+          <p>Capital: {selectedCountry.capital ? selectedCountry.capital[0] : 'No Capital'}</p>
+          <p>Region: {selectedCountry.region}</p>
+          <p>Population: {selectedCountry.population}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const styles = {
+  container: {
+    width: '300px',
+    margin: '0 auto',
+    textAlign: 'center',
+    position: 'relative',
+  },
+  input: {
+    width: '100%',
+    padding: '10px',
+    fontSize: '16px',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+  },
+  suggestionList: {
+    position: 'absolute',
+    width: '100%',
+    maxHeight: '150px',
+    overflowY: 'auto',
+    margin: '0',
+    padding: '0',
+    listStyleType: 'none',
+    backgroundColor: 'white',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    zIndex: '1000',
+  },
+  suggestionItem: {
+    padding: '10px',
+    cursor: 'pointer',
+    borderBottom: '1px solid #ddd',
+  },
+  selectedCountry: {
+    marginTop: '20px',
+  },
+};
+
+
+
+// src/App.js
+import React from 'react';
+import SearchBar from './components/SearchBar';
+
+const App = () => {
+  return (
+    <div>
+      <h1>Country Search</h1>
+      <SearchBar />
+    </div>
+  );
+};
